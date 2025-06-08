@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Image Padding Tool</title>
+  <style>
+    /* 4. box-sizing: border-box; 전역 적용 */
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: sans-serif;
+      padding: 1rem;
+      background: #111;
+      color: #fff;
+      min-height: 100vh;
+    }
+    input, select, button {
+      margin: 0.5rem 0;
+      padding: 0.4rem;
+      font-size: 1rem;
+    }
+
+    /* 1. <br> 태그 제거 후 CSS로 간격 조절 */
+    #imageInput {
+        margin-bottom: 1rem;
+    }
+
+    canvas {
+      border: 1px solid #555;
+      background-color: #222; /* Default solid background for canvas */
+      max-width: 500px;
+      max-height: calc(100vh - 250px);
+      height: auto;
+      display: block;
+      margin-top: 1rem;
+      margin-left: 0;
+      margin-right: auto;
+      z-index: 5;
+    }
+
+    canvas.transparent-background-pattern {
+        background-image: linear-gradient(45deg, #ddd 25%, transparent 25%, transparent 75%, #ddd 75%, #ddd),
+                          linear-gradient(45deg, #ddd 25%, transparent 25%, transparent 75%, #ddd 75%, #ddd);
+        background-size: 14px 14px;
+        background-position: 0 0, 7px 7px;
+        background-color: #fff; /* Base color for the checkerboard */
+    }
+
+    /* 색상 선택 관련 스타일 */
+    .color-input-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 0.5rem;
+    }
+
+    .color-picker-wrapper {
+      position: relative;
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    #colorDisplayBox {
+      width: 150px;
+      height: 30px;
+      border: 1px solid #555;
+      border-radius: 5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      color: #eee;
+      box-sizing: border-box;
+    }
+
+    #colorDisplayBox.transparent-display-box {
+        background-image: linear-gradient(45deg, #ddd 25%, transparent 25%, transparent 75%, #ddd 75%, #ddd),
+                          linear-gradient(45deg, #ddd 25%, transparent 25%, transparent 75%, #ddd 75%, #ddd);
+        background-size: 14px 14px;
+        background-position: 0 0, 7px 7px;
+        background-color: #fff;
+        border: 1px solid #aaa;
+    }
+
+    #predefinedColorPalette {
+      display: none;
+      position: absolute;
+      top: calc(100% + 5px);
+      left: 50%;
+      transform: translateX(-50%);
+      width: 260px;
+      max-width: calc(100vw - 2rem);
+      box-sizing: border-box;
+
+      background-color: #333;
+      border: 1px solid #555;
+      padding: 10px;
+      z-index: 10;
+      border-radius: 5px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+      align-content: start;
+    }
+
+    #predefinedColorPalette.visible {
+      display: grid;
+    }
+
+    .color-swatch {
+      width: 30px;
+      height: 30px;
+      border: 1px solid #777;
+      cursor: pointer;
+      border-radius: 3px;
+      transition: transform 0.1s ease-in-out;
+    }
+
+    .color-swatch:hover {
+      transform: scale(1.1);
+    }
+
+    .color-swatch.transparent {
+        background-image: linear-gradient(45deg, #ddd 25%, transparent 25%, transparent 75%, #ddd 75%, #ddd),
+                          linear-gradient(45deg, #ddd 25%, transparent 25%, transparent 75%, #ddd 75%, #ddd);
+        background-size: 14px 14px;
+        background-position: 0 0, 7px 7px;
+        background-color: #fff;
+        border: 1px solid #aaa;
+    }
+
+    /* 직접 입력 헥스 코드 필드 스타일 */
+    .color-input-area {
+        grid-column: 1 / -1;
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        justify-content: space-between;
+    }
+    .color-input-area label {
+        white-space: nowrap;
+        font-size: 0.9rem;
+    }
+    .color-input-area input[type="text"] {
+        flex-grow: 1;
+        background-color: #222;
+        border: 1px solid #555;
+        color: #eee;
+        padding: 0.4rem 0.8rem;
+        border-radius: 3px;
+        font-family: monospace;
+        text-transform: uppercase;
+        min-width: 0; /* ✨수정됨: 튀어나오는 문제 해결을 위해 추가 ✨*/
+    }
+    .color-input-area input[type="text"].invalid {
+        border-color: #f00;
+    }
+
+    /* 비율 컨트롤 그룹 스타일 */
+    .ratio-controls-flex-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 1rem; /* 1. <br> 태그 제거 후 CSS로 간격 조절 */
+    }
+
+    /* 비율 직접 입력 필드 컨테이너 스타일 */
+    .aspect-ratio-custom-input-group {
+        display: none;
+        align-items: center;
+        gap: 5px;
+    }
+    .aspect-ratio-custom-input-group.visible {
+        display: flex;
+    }
+    .aspect-ratio-custom-input-group label {
+        white-space: nowrap;
+        font-size: 0.9rem;
+    }
+    .aspect-ratio-custom-input-group input[type="text"] {
+        width: 150px;
+        background-color: #222;
+        border: 1px solid #555;
+        color: #eee;
+        padding: 0.4rem 0.8rem;
+        border-radius: 3px;
+        font-family: monospace;
+        box-sizing: border-box;
+    }
+    .aspect-ratio-custom-input-group input[type="text"].invalid {
+        border-color: #f00;
+    }
+
+    #eyedropperButton {
+        background-color: #555;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        padding: 0.6rem 0.8rem;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    #eyedropperButton:hover {
+        background-color: #777;
+    }
+    #eyedropperButton:disabled {
+        background-color: #333;
+        color: #888;
+        cursor: not-allowed;
+    }
+
+    /* 1. <br> 태그 제거 후 CSS로 간격 조절 */
+    #downloadButton {
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>📐 Image Padding Tool</h1>
+
+  <input type="file" id="imageInput" accept="image/*">
+
+  <div class="color-input-group">
+    <label>배경색:</label>
+    <div class="color-picker-wrapper">
+      <div id="colorDisplayBox">
+        <span id="currentHex">#000000</span>
+      </div>
+      <div id="predefinedColorPalette">
+        <!-- 투명색 -->
+        <div class="color-swatch transparent" data-color="rgba(0,0,0,0)"></div>
+        <!-- 무채색 스와치 -->
+        <div class="color-swatch" data-color="#000000" style="background-color: #000000;"></div>
+        <div class="color-swatch" data-color="#333333" style="background-color: #333333;"></div>
+        <div class="color-swatch" data-color="#545454" style="background-color: #545454;"></div>
+        <div class="color-swatch" data-color="#737373" style="background-color: #737373;"></div>
+        <div class="color-swatch" data-color="#A6A6A6" style="background-color: #A6A6A6;"></div>
+        <div class="color-swatch" data-color="#D9D9D9" style="background-color: #D9D9D9;"></div>
+        <div class="color-swatch" data-color="#FFFFFF" style="background-color: #FFFFFF;"></div>
+
+        <!-- 새로운 유채색 스와치들 -->
+        <div class="color-swatch" data-color="#D0021B" style="background-color: #D0021B;"></div>
+        <div class="color-swatch" data-color="#F5A623" style="background-color: #F5A623;"></div>
+        <div class="color-swatch" data-color="#F8E71C" style="background-color: #F8E71C;"></div>
+        <div class="color-swatch" data-color="#8B572A" style="background-color: #8B572A;"></div>
+        <div class="color-swatch" data-color="#7ED321" style="background-color: #7ED321;"></div>
+        <div class="color-swatch" data-color="#417505" style="background-color: #417505;"></div>
+        <div class="color-swatch" data-color="#BD10E0" style="background-color: #BD10E0;"></div>
+        <div class="color-swatch" data-color="#4A90E2" style="background-color: #4A90E2;"></div>
+        <div class="color-swatch" data-color="#50E3C2" style="background-color: #50E3C2;"></div>
+        <div class="color-swatch" data-color="#B8E986" style="background-color: #B8E986;"></div>
+
+        <div class="color-input-area">
+          <label for="hexInput">직접 입력:</label>
+          <input type="text" id="hexInput" maxlength="7" placeholder="#RRGGBB">
+        </div>
+      </div>
+    </div>
+    <button id="eyedropperButton">스포이드</button>
+  </div>
+
+  <div class="ratio-controls-flex-group">
+    비율 선택:
+    <select id="aspectRatio">
+      <option value="1">1:1</option>
+      <option value="1.33">4:3</option>
+      <option value="1.5">3:2</option>
+      <option value="1.78" selected>16:9</option>
+      <option value="custom">-- 직접 입력 --</option>
+    </select>
+
+    <div id="customAspectRatioInputGroup" class="aspect-ratio-custom-input-group">
+      <label for="customAspectRatioInput">비율 입력:</label>
+      <!-- 5. placeholder 텍스트 수정 -->
+      <input type="text" id="customAspectRatioInput" placeholder="예: 16:9 (빈 값 시 16:9)">
+    </div>
+  </div>
+
+  <!-- 2. 다운로드 버튼 id 부여 및 onclick 제거 -->
+  <button id="downloadButton">다운로드</button>
+
+  <canvas id="canvas" width="1600" height="900"></canvas>
+
+  <script>
+    let img;
+    let originalFileName = '';
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const imageInput = document.getElementById("imageInput");
+    const aspectRatioSelect = document.getElementById("aspectRatio");
+    const customAspectRatioInput = document.getElementById("customAspectRatioInput");
+    const customAspectRatioInputGroup = document.getElementById("customAspectRatioInputGroup");
+
+    const colorDisplayBox = document.getElementById("colorDisplayBox");
+    const currentHexSpan = document.getElementById("currentHex");
+    const predefinedColorPalette = document.getElementById("predefinedColorPalette");
+    const eyedropperButton = document.getElementById("eyedropperButton");
+    const hexInput = document.getElementById("hexInput");
+    const downloadButton = document.getElementById("downloadButton"); // 2. 다운로드 버튼 요소 가져오기
+
+    let currentBgColor = "#000000";
+
+    imageInput.addEventListener("change", e => {
+      const reader = new FileReader();
+      reader.onload = function (evt) {
+        img = new Image();
+        img.onload = () => processImage();
+        img.src = evt.target.result;
+      };
+      if (e.target.files && e.target.files[0]) {
+        originalFileName = e.target.files[0].name;
+      }
+      reader.readAsDataURL(e.target.files[0]);
+    });
+
+    // 비율 선택 드롭다운 변경 시
+    aspectRatioSelect.addEventListener("change", () => {
+        if (aspectRatioSelect.value === 'custom') {
+            customAspectRatioInputGroup.classList.add("visible");
+            customAspectRatioInput.focus();
+        } else {
+            customAspectRatioInputGroup.classList.remove("visible");
+            customAspectRatioInput.value = '';
+            customAspectRatioInput.classList.remove("invalid");
+        }
+        processImage();
+    });
+
+    // 비율 직접 입력 필드 변경 시
+    customAspectRatioInput.addEventListener("input", () => {
+        processImage();
+    });
+
+    colorDisplayBox.addEventListener("click", (e) => {
+      e.stopPropagation();
+      predefinedColorPalette.classList.toggle("visible");
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!predefinedColorPalette.contains(e.target) && !colorDisplayBox.contains(e.target) && e.target !== eyedropperButton) {
+        predefinedColorPalette.classList.remove("visible");
+      }
+    });
+
+    predefinedColorPalette.addEventListener("click", (e) => {
+      const targetSwatch = e.target.closest(".color-swatch");
+      if (targetSwatch) {
+        const selectedColor = targetSwatch.dataset.color;
+        if (selectedColor) {
+          currentBgColor = selectedColor;
+          updateColorDisplay(currentBgColor);
+          processImage();
+          predefinedColorPalette.classList.remove("visible");
+        }
+      }
+    });
+
+    // 헥스 입력 필드 클릭 시 전체 선택
+    hexInput.addEventListener("focus", () => {
+        hexInput.select();
+    });
+
+    hexInput.addEventListener("input", () => {
+        let value = hexInput.value.trim();
+        if (value.length > 0 && !value.startsWith('#') && value.toLowerCase() !== 'transparent') {
+            value = '#' + value;
+        }
+
+        const validHexRegex = /^#([A-Fa-f0-9]{3}){1,2}$/;
+
+        if (validHexRegex.test(value)) {
+            currentBgColor = value;
+            updateColorDisplay(currentBgColor);
+            processImage();
+            hexInput.classList.remove("invalid");
+        } else if (value.toLowerCase() === 'transparent') {
+             currentBgColor = 'rgba(0,0,0,0)';
+             updateColorDisplay(currentBgColor);
+             processImage();
+             hexInput.classList.remove("invalid");
+        } else { // 빈 문자열 또는 유효하지 않은 헥스 코드
+            hexInput.classList.add("invalid");
+        }
+    });
+
+    eyedropperButton.addEventListener("click", async () => {
+      if (window.EyeDropper) {
+        const eyeDropper = new EyeDropper();
+        try {
+          const result = await eyeDropper.open();
+          currentBgColor = result.sRGBHex;
+          updateColorDisplay(currentBgColor);
+          processImage();
+        } catch (e) {
+          console.error("EyeDropper API 에러:", e);
+        }
+      } else {
+        alert("이 브라우저에서는 스포이드 기능을 지원하지 않습니다. (Chrome, Edge 등에서 사용 가능)");
+      }
+    });
+
+    // updateColorDisplay 함수 수정: hexInput.value를 항상 현재 색상으로 채움
+    function updateColorDisplay(color) {
+      if (color === 'rgba(0,0,0,0)' || color.toLowerCase() === 'transparent') {
+          colorDisplayBox.style.backgroundColor = '';
+          colorDisplayBox.classList.add('transparent-display-box');
+          currentHexSpan.textContent = "투명";
+          hexInput.value = 'transparent';
+          hexInput.placeholder = '투명';
+      } else {
+          colorDisplayBox.classList.remove('transparent-display-box');
+          colorDisplayBox.style.backgroundColor = color;
+          currentHexSpan.textContent = color.toUpperCase();
+          hexInput.value = color.toUpperCase();
+          hexInput.placeholder = color.toUpperCase();
+      }
+      hexInput.classList.remove("invalid");
+
+      if (color === 'rgba(0,0,0,0)' || color.toLowerCase() === 'transparent') {
+        currentHexSpan.style.color = '#333';
+      } else {
+        const hex = color.startsWith('#') ? color.slice(1) : '000000';
+        const r = parseInt(hex.substring(0,2), 16);
+        const g = parseInt(hex.substring(2,4), 16);
+        const b = parseInt(hex.substring(4,6), 16);
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        currentHexSpan.style.color = (luminance > 0.5) ? '#333' : '#eee';
+      }
+    }
+
+    // processImage 함수 (비율 계산 로직 포함)
+    function processImage() {
+      if (!img) return;
+
+      let aspect;
+      const selectedRatioOption = aspectRatioSelect.value;
+      const customRatioValue = customAspectRatioInput.value.trim();
+      const parts = customRatioValue.split(':');
+
+      if (selectedRatioOption === 'custom' && parts.length === 2 && !isNaN(parseFloat(parts[0])) && !isNaN(parseFloat(parts[1])) && parseFloat(parts[1]) !== 0) {
+        aspect = parseFloat(parts[0]) / parseFloat(parts[1]);
+        customAspectRatioInput.classList.remove("invalid");
+      }
+      else if (selectedRatioOption === 'custom' && customRatioValue === '') {
+        aspect = 16 / 9;
+        customAspectRatioInput.classList.remove("invalid");
+      }
+      else if (selectedRatioOption === 'custom' && customRatioValue !== '') {
+        aspect = 16 / 9;
+        customAspectRatioInput.classList.add("invalid");
+      }
+      else {
+        aspect = parseFloat(selectedRatioOption || "1.78");
+        customAspectRatioInput.classList.remove("invalid");
+      }
+
+      const bgColor = currentBgColor;
+      const imgRatio = img.width / img.height;
+      let canvasWidth, canvasHeight;
+
+      if (imgRatio > aspect) {
+        canvasWidth = img.width;
+        canvasHeight = Math.round(img.width / aspect);
+      } else {
+        canvasHeight = img.height;
+        canvasWidth = Math.round(img.height * aspect);
+      }
+
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
+
+      if (bgColor === 'rgba(0,0,0,0)' || bgColor.toLowerCase() === 'transparent') {
+        ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+        canvas.classList.add('transparent-background-pattern');
+      } else {
+        canvas.classList.remove('transparent-background-pattern');
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      }
+
+      const x = (canvasWidth - img.width) / 2;
+      const y = (canvasHeight - img.height) / 2;
+
+      ctx.drawImage(img, x, y);
+    }
+
+    function download() {
+      if (!img) {
+        alert("이미지를 먼저 업로드해주세요.");
+        return;
+      }
+
+      let filename = "padded_image.png";
+
+      if (originalFileName) {
+        const lastDotIndex = originalFileName.lastIndexOf('.');
+        if (lastDotIndex === -1) {
+          filename = `${originalFileName}_padded.png`;
+        } else {
+          const namePart = originalFileName.substring(0, lastDotIndex);
+          const extensionPart = originalFileName.substring(lastDotIndex + 1);
+          filename = `${namePart}_padded.${extensionPart}`;
+        }
+      }
+
+      const link = document.createElement("a");
+      link.download = filename;
+      link.href = canvas.toDataURL();
+      link.click();
+    }
+
+    // 페이지 로드 시 초기 설정
+    updateColorDisplay(currentBgColor);
+    processImage();
+
+    // 2. 다운로드 버튼 이벤트 리스너 추가
+    downloadButton.addEventListener("click", download);
+
+    // EyeDropper API 지원 여부에 따라 버튼 상태 변경
+    if (!window.EyeDropper) {
+        eyedropperButton.disabled = true;
+        eyedropperButton.title = "이 브라우저는 스포이드 기능을 지원하지 않습니다.";
+    }
+  </script>
+</body>
+</html>
