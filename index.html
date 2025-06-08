@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- ✨ 추가: 모바일 뷰포트 설정 ✨ -->
   <title>Image Padding Tool</title>
   <style>
     /* 4. box-sizing: border-box; 전역 적용 */
@@ -219,6 +220,97 @@
     #downloadButton {
       margin-bottom: 1rem;
     }
+
+    /* --- 모바일 대응을 위한 미디어 쿼리 추가 --- */
+
+    /* 작은 화면 (예: 768px 이하, 태블릿 세로 및 스마트폰 가로/세로) */
+    @media (max-width: 768px) {
+        body {
+            padding: 0.8rem; /* 모바일에서 좌우 패딩을 약간 줄여 공간 확보 */
+        }
+
+        h1 {
+            font-size: 1.8rem; /* 제목 크기 줄이기 */
+            margin-bottom: 1rem;
+        }
+
+        /* 플렉스 컨테이너 내부 요소들이 자동으로 다음 줄로 내려오도록 설정 */
+        .color-input-group,
+        .ratio-controls-flex-group,
+        .aspect-ratio-custom-input-group,
+        .color-input-area {
+            flex-wrap: wrap; /* 공간이 부족하면 다음 줄로 넘어가도록 설정 */
+            gap: 8px; /* 요소 간 간격 조정 */
+        }
+
+        /* 색상 직접 입력 필드와 라벨이 한 줄에 다 안 들어갈 경우를 대비 */
+        .color-input-area label {
+            flex-basis: 100%; /* 라벨이 한 줄 전체를 차지하게 하여 입력 필드가 다음 줄로 내려오도록 */
+            text-align: left; /* 라벨 정렬 */
+        }
+        .color-input-area input[type="text"] {
+            flex-grow: 1; /* 입력 필드가 남은 공간을 채우도록 */
+            min-width: 150px; /* 너무 작아지지 않게 최소 너비 설정 */
+        }
+
+
+        /* 사전 정의된 색상 팔레트의 그리드 컬럼 수를 줄여서 모바일에 맞춤 */
+        #predefinedColorPalette {
+            grid-template-columns: repeat(4, 1fr); /* 6열 -> 4열 또는 3열로 줄이기 */
+            width: auto; /* 고정 너비 대신 자동으로 너비 조절 */
+            max-width: calc(100vw - 1.6rem); /* body padding 고려 (0.8rem * 2) */
+            left: 0; /* 중앙 정렬 대신 왼쪽 정렬 */
+            transform: translateX(0); /* translateX 초기화 */
+        }
+        /* 팔레트가 화면 중앙이 아닌 좌측에 맞춰지도록 조정 (color-picker-wrapper 기준으로) */
+        .color-picker-wrapper #predefinedColorPalette {
+            left: 0;
+            transform: translateX(0);
+        }
+
+        /* 스와치 크기는 현재 30px로 충분히 터치하기 좋습니다. */
+
+        /* 사용자 정의 비율 입력 필드 너비 조절 */
+        #customAspectRatioInputGroup input[type="text"] {
+            width: 100%; /* 부모 컨테이너 내에서 가득 채우도록 */
+            min-width: 150px; /* 너무 작아지지 않게 최소 너비 */
+        }
+
+        /* 캔버스 */
+        canvas {
+            max-width: 100%; /* 모바일에서 캔버스가 화면 너비를 최대한 활용하도록 */
+            max-height: calc(100vh - 300px); /* 컨트롤들이 차지하는 공간을 고려하여 높이 조정 */
+            margin-left: auto; /* 중앙 정렬 */
+            margin-right: auto; /* 중앙 정렬 */
+        }
+
+        /* 버튼과 입력 필드의 터치 영역 확보 */
+        input, select, button {
+            min-height: 40px; /* 터치하기 쉽도록 최소 높이 설정 */
+        }
+    }
+
+    /* 아주 작은 화면 (예: 480px 이하, 대부분의 스마트폰 세로) */
+    @media (max-width: 480px) {
+        body {
+            padding: 0.5rem; /* 더 작은 화면에서는 패딩을 더 줄일 수 있습니다. */
+        }
+
+        h1 {
+            font-size: 1.6rem;
+        }
+
+        /* 색상 팔레트 컬럼 더 줄이기 */
+        #predefinedColorPalette {
+            grid-template-columns: repeat(3, 1fr); /* 4열 -> 3열로 줄이기 */
+            max-width: calc(100vw - 1rem); /* body padding 고려 (0.5rem * 2) */
+        }
+
+        /* '직접 입력' 라벨이 너무 길다면 */
+        .color-input-area label {
+            font-size: 0.85rem;
+        }
+    }
   </style>
 </head>
 <body>
@@ -227,7 +319,7 @@
   <input type="file" id="imageInput" accept="image/*">
 
   <div class="color-input-group">
-    <label>배경색:</label>
+    <label for="colorDisplayBox">배경색:</label> <!-- ✨ 수정: label for 추가 ✨ -->
     <div class="color-picker-wrapper">
       <div id="colorDisplayBox">
         <span id="currentHex">#000000</span>
@@ -266,7 +358,7 @@
   </div>
 
   <div class="ratio-controls-flex-group">
-    비율 선택:
+    <label for="aspectRatio">비율 선택:</label> <!-- ✨ 수정: label for 추가 ✨ -->
     <select id="aspectRatio">
       <option value="1">1:1</option>
       <option value="1.33">4:3</option>
@@ -277,8 +369,9 @@
 
     <div id="customAspectRatioInputGroup" class="aspect-ratio-custom-input-group">
       <label for="customAspectRatioInput">비율 입력:</label>
-      <!-- 5. placeholder 텍스트 수정 -->
-      <input type="text" id="customAspectRatioInput" placeholder="예: 16:9 (빈 값 시 16:9)">
+      <!-- ✨ 수정: placeholder 텍스트 및 안내 문구 추가 ✨ -->
+      <input type="text" id="customAspectRatioInput" placeholder="예: 16:9">
+      <small style="display: block; margin-top: 0.2rem; font-size: 0.8rem; color: #aaa;">빈 값 시 16:9 비율이 적용됩니다.</small>
     </div>
   </div>
 
