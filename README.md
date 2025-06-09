@@ -4,7 +4,8 @@ A simple web tool to add padding/background to images and adjust their aspect ra
 
 link : https://imgpad.live
 
-![image](https://github.com/user-attachments/assets/fdfebff1-d499-4c35-b29b-9eaa7c40377d)
+![image](https://github.com/user-attachments/assets/35729ddc-e9b2-4f6e-b8ef-480455636690)
+
 
 
 
