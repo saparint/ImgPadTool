@@ -16,12 +16,24 @@
       background: #111;
       color: #fff;
       min-height: 100vh;
+      display: flex; /* ✨ 추가: body를 flex 컨테이너로 만들어 내부 요소 중앙 정렬을 돕습니다. ✨ */
+      flex-direction: column; /* ✨ 추가: 요소들을 세로로 정렬 ✨ */
+      align-items: center; /* ✨ 추가: 자식 요소들을 가로 중앙 정렬 ✨ */
     }
     input, select, button {
       margin: 0.5rem 0;
       padding: 0.4rem;
       font-size: 1rem;
     }
+
+    /* ✨ 추가: 메인 콘텐츠 컨테이너 스타일 ✨ */
+    #mainContentContainer {
+        max-width: 600px; /* 원하는 최대 너비 설정, 픽셀 단위로 조정 가능 */
+        width: 100%; /* 부모에 맞춰 너비 100% 사용 (max-width에 걸림) */
+        /* margin: 0 auto; /* body가 flex 컨테이너이므로 필요 없어짐. */
+        padding: 0 0.5rem; /* 선택 사항: 컨테이너 내부 좌우 패딩 추가 (body 패딩과 별개) */
+    }
+
 
     /* 1. <br> 태그 제거 후 CSS로 간격 조절 */
     #imageInput {
@@ -31,12 +43,13 @@
     canvas {
       border: 1px solid #555;
       background-color: #222; /* Default solid background for canvas */
-      max-width: 500px;
+      max-width: 100%;
       max-height: calc(100vh - 250px);
       height: auto;
       display: block;
       margin-top: 1rem;
-      margin-left: 0;
+      /* ✨ 수정: 캔버스도 중앙 정렬되도록 margin-left/right를 auto로 변경 ✨ */
+      margin-left: auto;
       margin-right: auto;
       z-index: 5;
     }
@@ -314,69 +327,72 @@
   </style>
 </head>
 <body>
-  <h1 id="mainTitle">📐 Image Padding Tool</h1>
+  <!-- ✨ 추가: 메인 콘텐츠 컨테이너 시작 ✨ -->
+  <div id="mainContentContainer">
+    <h1 id="mainTitle">📐 Image Padding Tool</h1>
 
-  <input type="file" id="imageInput" accept="image/*">
+    <input type="file" id="imageInput" accept="image/*">
 
-  <div class="color-input-group">
-    <label for="colorDisplayBox" id="bgColorLabel">배경색:</label>
-    <div class="color-picker-wrapper">
-      <div id="colorDisplayBox">
-        <span id="currentHex">#000000</span>
-      </div>
-      <div id="predefinedColorPalette">
-        <!-- 투명색 -->
-        <div class="color-swatch transparent" data-color="rgba(0,0,0,0)"></div>
-        <!-- 무채색 스와치 -->
-        <div class="color-swatch" data-color="#000000" style="background-color: #000000;"></div>
-        <div class="color-swatch" data-color="#333333" style="background-color: #333333;"></div>
-        <div class="color-swatch" data-color="#545454" style="background-color: #545454;"></div>
-        <div class="color-swatch" data-color="#737373" style="background-color: #737373;"></div>
-        <div class="color-swatch" data-color="#A6A6A6" style="background-color: #A6A6A6;"></div>
-        <div class="color-swatch" data-color="#D9D9D9" style="background-color: #D9D9D9;"></div>
-        <div class="color-swatch" data-color="#FFFFFF" style="background-color: #FFFFFF;"></div>
+    <div class="color-input-group">
+      <label for="colorDisplayBox" id="bgColorLabel">배경색:</label>
+      <div class="color-picker-wrapper">
+        <div id="colorDisplayBox">
+          <span id="currentHex">#000000</span>
+        </div>
+        <div id="predefinedColorPalette">
+          <!-- 투명색 -->
+          <div class="color-swatch transparent" data-color="rgba(0,0,0,0)"></div>
+          <!-- 무채색 스와치 -->
+          <div class="color-swatch" data-color="#000000" style="background-color: #000000;"></div>
+          <div class="color-swatch" data-color="#333333" style="background-color: #333333;"></div>
+          <div class="color-swatch" data-color="#545454" style="background-color: #545454;"></div>
+          <div class="color-swatch" data-color="#737373" style="background-color: #737373;"></div>
+          <div class="color-swatch" data-color="#A6A6A6" style="background-color: #A6A6A6;"></div>
+          <div class="color-swatch" data-color="#D9D9D9" style="background-color: #D9D9D9;"></div>
+          <div class="color-swatch" data-color="#FFFFFF" style="background-color: #FFFFFF;"></div>
 
-        <!-- 새로운 유채색 스와치들 -->
-        <div class="color-swatch" data-color="#D0021B" style="background-color: #D0021B;"></div>
-        <div class="color-swatch" data-color="#F5A623" style="background-color: #F5A623;"></div>
-        <div class="color-swatch" data-color="#F8E71C" style="background-color: #F8E71C;"></div>
-        <div class="color-swatch" data-color="#8B572A" style="background-color: #8B572A;"></div>
-        <div class="color-swatch" data-color="#7ED321" style="background-color: #7ED321;"></div>
-        <div class="color-swatch" data-color="#417505" style="background-color: #417505;"></div>
-        <div class="color-swatch" data-color="#BD10E0" style="background-color: #BD10E0;"></div>
-        <div class="color-swatch" data-color="#4A90E2" style="background-color: #4A90E2;"></div>
-        <div class="color-swatch" data-color="#50E3C2" style="background-color: #50E3C2;"></div>
-        <div class="color-swatch" data-color="#B8E986" style="background-color: #B8E986;"></div>
+          <!-- 새로운 유채색 스와치들 -->
+          <div class="color-swatch" data-color="#D0021B" style="background-color: #D0021B;"></div>
+          <div class="color-swatch" data-color="#F5A623" style="background-color: #F5A623;"></div>
+          <div class="color-swatch" data-color="#F8E71C" style="background-color: #F8E71C;"></div>
+          <div class="color-swatch" data-color="#8B572A" style="background-color: #8B572A;"></div>
+          <div class="color-swatch" data-color="#7ED321" style="background-color: #7ED321;"></div>
+          <div class="color-swatch" data-color="#417505" style="background-color: #417505;"></div>
+          <div class="color-swatch" data-color="#BD10E0" style="background-color: #BD10E0;"></div>
+          <div class="color-swatch" data-color="#4A90E2" style="background-color: #4A90E2;"></div>
+          <div class="color-swatch" data-color="#50E3C2" style="background-color: #50E3C2;"></div>
+          <div class="color-swatch" data-color="#B8E986" style="background-color: #B8E986;"></div>
 
-        <div class="color-input-area">
-          <label for="hexInput" id="directInputLabel">직접 입력:</label>
-          <input type="text" id="hexInput" maxlength="7" placeholder="#RRGGBB">
+          <div class="color-input-area">
+            <label for="hexInput" id="directInputLabel">직접 입력:</label>
+            <input type="text" id="hexInput" maxlength="7" placeholder="#RRGGBB">
+          </div>
         </div>
       </div>
+      <button id="eyedropperButton">스포이드</button>
     </div>
-    <button id="eyedropperButton">스포이드</button>
-  </div>
 
-  <div class="ratio-controls-flex-group">
-    <label for="aspectRatio" id="aspectRatioLabel">비율 선택:</label>
-    <select id="aspectRatio">
-      <option value="1" id="option1_1">1:1</option>
-      <option value="1.33" id="option4_3">4:3</option>
-      <option value="1.5" id="option3_2">3:2</option>
-      <option value="1.78" selected id="option16_9">16:9</option>
-      <option value="custom" id="customOption">-- 직접 입력 --</option>
-    </select>
+    <div class="ratio-controls-flex-group">
+      <label for="aspectRatio" id="aspectRatioLabel">비율 선택:</label>
+      <select id="aspectRatio">
+        <option value="1" id="option1_1">1:1</option>
+        <option value="1.33" id="option4_3">4:3</option>
+        <option value="1.5" id="option3_2">3:2</option>
+        <option value="1.78" selected id="option16_9">16:9</option>
+        <option value="custom" id="customOption">-- 직접 입력 --</option>
+      </select>
 
-    <div id="customAspectRatioInputGroup" class="aspect-ratio-custom-input-group">
-      <label for="customAspectRatioInput" id="customRatioLabel">비율 입력:</label>
-      <input type="text" id="customAspectRatioInput" placeholder="예: 16:9">
-      <small style="display: block; margin-top: 0.2rem; font-size: 0.8rem; color: #aaa;" id="ratioHint">빈 값 시 16:9 비율이 적용됩니다.</small>
+      <div id="customAspectRatioInputGroup" class="aspect-ratio-custom-input-group">
+        <label for="customAspectRatioInput" id="customRatioLabel">비율 입력:</label>
+        <input type="text" id="customAspectRatioInput" placeholder="예: 16:9">
+        <small style="display: block; margin-top: 0.2rem; font-size: 0.8rem; color: #aaa;" id="ratioHint">빈 값 시 16:9 비율이 적용됩니다.</small>
+      </div>
     </div>
-  </div>
 
-  <button id="downloadButton">다운로드</button>
+    <button id="downloadButton">다운로드</button>
 
-  <canvas id="canvas" width="1600" height="900"></canvas>
+    <canvas id="canvas" width="1600" height="900"></canvas>
+  </div> <!-- ✨ 추가: 메인 콘텐츠 컨테이너 끝 ✨ -->
 
   <script>
     let img;
