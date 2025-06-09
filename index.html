@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- ✨ 추가: 모바일 뷰포트 설정 ✨ -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Image Padding Tool</title>
   <style>
     /* 4. box-sizing: border-box; 전역 적용 */
@@ -12,13 +12,13 @@
 
     body {
       font-family: sans-serif;
-      padding: 1rem;
-      background: #111;
-      color: #fff;
+      padding: 0.5rem; /* 상단 여백을 줄였습니다 */
+      background: #111; /* 기존 어두운 배경색 유지 */
+      color: #fff; /* 기존 흰색 텍스트 유지 */
       min-height: 100vh;
-      display: flex; /* ✨ 추가: body를 flex 컨테이너로 만들어 내부 요소 중앙 정렬을 돕습니다. ✨ */
-      flex-direction: column; /* ✨ 추가: 요소들을 세로로 정렬 ✨ */
-      align-items: center; /* ✨ 추가: 자식 요소들을 가로 중앙 정렬 ✨ */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
     input, select, button {
       margin: 0.5rem 0;
@@ -26,19 +26,70 @@
       font-size: 1rem;
     }
 
-    /* ✨ 추가: 메인 콘텐츠 컨테이너 스타일 ✨ */
+    h1 { /* 제목 스타일 조정 */
+        margin-top: 0;
+        margin-bottom: 0.8rem;
+        font-size: 2.2rem;
+        text-align: center;
+    }
+
     #mainContentContainer {
-        max-width: 600px; /* 원하는 최대 너비 설정, 픽셀 단위로 조정 가능 */
-        width: 100%; /* 부모에 맞춰 너비 100% 사용 (max-width에 걸림) */
-        /* margin: 0 auto; /* body가 flex 컨테이너이므로 필요 없어짐. */
-        padding: 0 0.5rem; /* 선택 사항: 컨테이너 내부 좌우 패딩 추가 (body 패딩과 별개) */
+        max-width: 600px;
+        width: 100%;
+        padding: 0 0.5rem;
     }
 
-
-    /* 1. <br> 태그 제거 후 CSS로 간격 조절 */
-    #imageInput {
+    /* ✨ 핵심 수정: 드래그 앤 드롭 영역 스타일 - 원본 이미지처럼 어둡고 심플하게 ✨ */
+    #dropZone {
+        border: 2px dashed rgba(153, 153, 153, 1); /* 원본 이미지의 밝은 회색 점선 테두리 */
+        border-radius: 8px;
+        padding: 2.5rem 1rem; /* 내부 패딩 유지 */
+        text-align: center;
+        cursor: pointer;
+        transition: border-color 0.3s ease, background-color 0.3s ease;
         margin-bottom: 1rem;
+        position: relative;
+        display: flex;
+        flex-direction: column; /* 텍스트만 있으므로 필요 없지만 유지 */
+        align-items: center;
+        justify-content: center;
+        /* gap: 10px; /* 아이콘이 없으므로 gap은 큰 의미 없지만 유지 */ */
+        background-color: rgba(60, 60, 60, 1); /* 원본 이미지의 진한 회색 배경색 */
     }
+
+    #dropZone:hover {
+        border-color: rgba(180, 180, 180, 1); /* 호버 시 테두리 색상 약간 밝게 */
+        background-color: rgba(70, 70, 70, 1); /* 호버 시 배경색 약간 밝게 (부드러운 변화) */
+    }
+
+    #dropZone.highlight {
+        border-color: #4A90E2; /* 드래그 오버 시에는 파란색으로 명확하게 (기존 유지) */
+        background-color: rgba(75, 75, 75, 1); /* 드래그 오버 시 배경색을 약간 더 밝게 */
+    }
+
+    /* ✨ 제거: 아이콘 스타일은 이제 HTML에 아이콘이 없으므로 필요 없습니다. */
+    /* #dropZone .icon {
+        font-size: 2.8rem;
+        color: #888;
+    } */
+
+    #dropZone .text {
+        font-size: 1rem; /* 텍스트 크기 유지 (이미지와 유사) */
+        color: rgba(170, 170, 170, 1); /* 원본 이미지의 중간 회색 텍스트 색상 */
+    }
+
+    /* 실제 파일 인풋은 시각적으로 숨김 */
+    #imageInput {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
+    }
+
 
     canvas {
       border: 1px solid #555;
@@ -47,8 +98,7 @@
       max-height: calc(100vh - 250px);
       height: auto;
       display: block;
-      margin-top: 1rem;
-      /* ✨ 수정: 캔버스도 중앙 정렬되도록 margin-left/right를 auto로 변경 ✨ */
+      margin-top: 0.8rem; /* 캔버스 상단 마진도 약간 줄일 수 있습니다. */
       margin-left: auto;
       margin-right: auto;
       z-index: 5;
@@ -169,7 +219,7 @@
         border-radius: 3px;
         font-family: monospace;
         text-transform: uppercase;
-        min-width: 0; /* ✨수정됨: 튀어나오는 문제 해결을 위해 추가 ✨*/
+        min-width: 0;
     }
     .color-input-area input[type="text"].invalid {
         border-color: #f00;
@@ -180,7 +230,7 @@
         display: flex;
         align-items: center;
         gap: 10px;
-        margin-bottom: 1rem; /* 1. <br> 태그 제거 후 CSS로 간격 조절 */
+        margin-bottom: 1rem;
     }
 
     /* 비율 직접 입력 필드 컨테이너 스타일 */
@@ -229,7 +279,6 @@
         cursor: not-allowed;
     }
 
-    /* 1. <br> 태그 제거 후 CSS로 간격 조절 */
     #downloadButton {
       margin-bottom: 1rem;
     }
@@ -239,12 +288,13 @@
     /* 작은 화면 (예: 768px 이하, 태블릿 세로 및 스마트폰 가로/세로) */
     @media (max-width: 768px) {
         body {
-            padding: 0.8rem; /* 모바일에서 좌우 패딩을 약간 줄여 공간 확보 */
+            padding: 0.5rem;
         }
 
         h1 {
-            font-size: 1.8rem; /* 제목 크기 줄이기 */
-            margin-bottom: 1rem;
+            font-size: 1.6rem;
+            margin-top: 0.3rem;
+            margin-bottom: 0.5rem;
         }
 
         /* 플렉스 컨테이너 내부 요소들이 자동으로 다음 줄로 내려오도록 설정 */
@@ -281,8 +331,6 @@
             transform: translateX(0);
         }
 
-        /* 스와치 크기는 현재 30px로 충분히 터치하기 좋습니다. */
-
         /* 사용자 정의 비율 입력 필드 너비 조절 */
         #customAspectRatioInputGroup input[type="text"] {
             width: 100%; /* 부모 컨테이너 내에서 가득 채우도록 */
@@ -301,37 +349,60 @@
         input, select, button {
             min-height: 40px; /* 터치하기 쉽도록 최소 높이 설정 */
         }
+
+        /* 모바일 드롭존 패딩 조정 */
+        #dropZone {
+            padding: 1.5rem 0.8rem;
+        }
     }
 
     /* 아주 작은 화면 (예: 480px 이하, 대부분의 스마트폰 세로) */
     @media (max-width: 480px) {
         body {
-            padding: 0.5rem; /* 더 작은 화면에서는 패딩을 더 줄일 수 있습니다. */
+            padding: 0.3rem;
         }
 
         h1 {
-            font-size: 1.6rem;
+            font-size: 1.4rem;
+            margin-top: 0.2rem;
+            margin-bottom: 0.3rem;
         }
 
         /* 색상 팔레트 컬럼 더 줄이기 */
         #predefinedColorPalette {
-            grid-template-columns: repeat(3, 1fr); /* 4열 -> 3열로 줄이기 */
-            max-width: calc(100vw - 1rem); /* body padding 고려 (0.5rem * 2) */
+            grid-template-columns: repeat(3, 1fr);
+            max-width: calc(100vw - 1rem);
         }
 
         /* '직접 입력' 라벨이 너무 길다면 */
         .color-input-area label {
             font-size: 0.85rem;
         }
+
+        /* 아주 작은 화면 드롭존 패딩 조정 */
+        #dropZone {
+            padding: 1rem 0.5rem;
+        }
+        /* ✨ 아이콘이 없으므로 이 스타일은 이제 무의미합니다. */
+        /* #dropZone .icon {
+            font-size: 2.5rem;
+        } */
+        #dropZone .text {
+            font-size: 1rem;
+        }
     }
   </style>
 </head>
 <body>
-  <!-- ✨ 추가: 메인 콘텐츠 컨테이너 시작 ✨ -->
   <div id="mainContentContainer">
     <h1 id="mainTitle">📐 Image Padding Tool</h1>
 
-    <input type="file" id="imageInput" accept="image/*">
+    <!-- ✨ 드래그 앤 드롭 영역: 아이콘 제거 및 텍스트만 표시 ✨ -->
+    <div id="dropZone">
+        <!-- ⬆️ 아이콘 제거 -->
+        <span class="text" id="dropZoneText">클릭하거나 드래그하여 업로드</span>
+        <input type="file" id="imageInput" accept="image/*">
+    </div>
 
     <div class="color-input-group">
       <label for="colorDisplayBox" id="bgColorLabel">배경색:</label>
@@ -392,7 +463,7 @@
     <button id="downloadButton">다운로드</button>
 
     <canvas id="canvas" width="1600" height="900"></canvas>
-  </div> <!-- ✨ 추가: 메인 콘텐츠 컨테이너 끝 ✨ -->
+  </div>
 
   <script>
     let img;
@@ -411,13 +482,19 @@
     const hexInput = document.getElementById("hexInput");
     const downloadButton = document.getElementById("downloadButton");
 
+    // ✨ 드래그 앤 드롭 관련 요소 ✨
+    const dropZone = document.getElementById("dropZone");
+    const dropZoneText = document.getElementById("dropZoneText");
+
+
     let currentBgColor = "#000000";
 
-    // ✨ 국제화 (i18n) 관련 코드 추가 시작 ✨
+    // ✨ 국제화 (i18n) 관련 코드 ✨
     const translations = {
         ko: {
             title: "Image Padding Tool",
             mainTitle: "📐 Image Padding Tool",
+            dropZoneText: "클릭하거나 드래그하여 업로드", // ✨ 한국어 텍스트 유지 (이미지에는 영어 텍스트지만) ✨
             bgColorLabel: "배경색:",
             directInputLabel: "직접 입력:",
             eyedropperButton: "스포이드",
@@ -433,11 +510,13 @@
             alertNoImage: "이미지를 먼저 업로드해주세요.",
             alertEyedropperNotSupported: "이 브라우저에서는 스포이드 기능을 지원하지 않습니다. (Chrome, Edge 등에서 사용 가능)",
             eyedropperButtonTitle: "이 브라우저는 스포이드 기능을 지원하지 않습니다.",
-            transparent: "투명"
+            transparent: "투명",
+            alertNotAnImage: "이미지 파일만 업로드할 수 있습니다."
         },
         en: {
             title: "Image Padding Tool",
             mainTitle: "📐 Image Padding Tool",
+            dropZoneText: "Click or drag to upload", // ✨ 영어 텍스트는 이미지와 동일하게 유지 ✨
             bgColorLabel: "Background Color:",
             directInputLabel: "Direct Input:",
             eyedropperButton: "Eyedropper",
@@ -453,27 +532,28 @@
             alertNoImage: "Please upload an image first.",
             alertEyedropperNotSupported: "This browser does not support the Eyedropper tool. (Available in Chrome, Edge, etc.)",
             eyedropperButtonTitle: "This browser does not support the eyedropper tool.",
-            transparent: "Transparent"
+            transparent: "Transparent",
+            alertNotAnImage: "Only image files can be uploaded."
         }
     };
 
-    let langStrings; // 현재 선택된 언어의 문자열을 담을 변수
+    let langStrings;
 
     function getBrowserLanguage() {
         const userLang = navigator.language || navigator.userLanguage;
         if (userLang.startsWith('ko')) {
             return 'ko';
         }
-        return 'en'; // 기본값은 영어
+        return 'en';
     }
 
     function applyTranslations() {
         const lang = getBrowserLanguage();
         langStrings = translations[lang];
 
-        // HTML 요소 텍스트 업데이트
         document.title = langStrings.title;
         document.getElementById("mainTitle").textContent = langStrings.mainTitle;
+        document.getElementById("dropZoneText").textContent = langStrings.dropZoneText;
         document.getElementById("bgColorLabel").textContent = langStrings.bgColorLabel;
         document.getElementById("directInputLabel").textContent = langStrings.directInputLabel;
         document.getElementById("eyedropperButton").textContent = langStrings.eyedropperButton;
@@ -482,43 +562,76 @@
         document.getElementById("customRatioLabel").textContent = langStrings.customRatioLabel;
         document.getElementById("ratioHint").textContent = langStrings.ratioHint;
 
-        // Placeholder 업데이트
-        // hexInput.placeholder는 transparent로 바뀔 수 있으므로 updateColorDisplay에서 처리
         customAspectRatioInput.placeholder = langStrings.customRatioPlaceholder;
 
-        // select option 텍스트 업데이트
         document.getElementById("option1_1").textContent = langStrings.option1_1;
         document.getElementById("option4_3").textContent = langStrings.option4_3;
         document.getElementById("option3_2").textContent = langStrings.option3_2;
         document.getElementById("option16_9").textContent = langStrings.option16_9;
         document.getElementById("customOption").textContent = langStrings.customOption;
 
-        // EyeDropper 버튼 상태 및 툴팁 업데이트
         if (!window.EyeDropper) {
             eyedropperButton.disabled = true;
             eyedropperButton.title = langStrings.eyedropperButtonTitle;
         } else {
             eyedropperButton.disabled = false;
-            eyedropperButton.title = ''; // 지원하면 title 제거
+            eyedropperButton.title = '';
         }
 
-        // 현재 배경색 표시 업데이트 (언어 변경 후 '투명' 텍스트 재적용)
         updateColorDisplay(currentBgColor);
     }
-    // ✨ 국제화 (i18n) 관련 코드 추가 끝 ✨
 
+    // ✨ 파일 처리 로직을 별도 함수로 분리 ✨
+    function handleFile(file) {
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            alert(langStrings.alertNotAnImage);
+            return;
+        }
+
+        originalFileName = file.name;
+
+        const reader = new FileReader();
+        reader.onload = function (evt) {
+            img = new Image();
+            img.onload = () => processImage();
+            img.src = evt.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // ✨ imageInput change 이벤트 리스너 수정 ✨
     imageInput.addEventListener("change", e => {
-      const reader = new FileReader();
-      reader.onload = function (evt) {
-        img = new Image();
-        img.onload = () => processImage();
-        img.src = evt.target.result;
-      };
       if (e.target.files && e.target.files[0]) {
-        originalFileName = e.target.files[0].name;
+        handleFile(e.target.files[0]);
       }
-      reader.readAsDataURL(e.target.files[0]);
     });
+
+    // ✨ 드래그 앤 드롭 이벤트 리스너 ✨
+    dropZone.addEventListener("dragover", e => {
+        e.preventDefault(); // 기본 동작 방지 (파일 열림 방지)
+        dropZone.classList.add("highlight");
+    });
+
+    dropZone.addEventListener("dragleave", () => {
+        dropZone.classList.remove("highlight");
+    });
+
+    dropZone.addEventListener("drop", e => {
+        e.preventDefault(); // 기본 동작 방지
+        dropZone.classList.remove("highlight");
+
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            handleFile(e.dataTransfer.files[0]);
+        }
+    });
+
+    // ✨ 드롭 존 클릭 시 숨겨진 input[type=file] 클릭 트리거 ✨
+    dropZone.addEventListener("click", () => {
+        imageInput.click();
+    });
+
 
     // 비율 선택 드롭다운 변경 시
     aspectRatioSelect.addEventListener("change", () => {
@@ -562,7 +675,6 @@
       }
     });
 
-    // 헥스 입력 필드 클릭 시 전체 선택
     hexInput.addEventListener("focus", () => {
         hexInput.select();
     });
@@ -584,7 +696,7 @@
              currentBgColor = 'rgba(0,0,0,0)';
              updateColorDisplay(currentBgColor);
              hexInput.classList.remove("invalid");
-        } else { // 빈 문자열 또는 유효하지 않은 헥스 코드
+        } else {
             hexInput.classList.add("invalid");
         }
     });
@@ -601,18 +713,17 @@
           console.error("EyeDropper API 에러:", e);
         }
       } else {
-        alert(langStrings.alertEyedropperNotSupported); // ✨ 번역된 텍스트 사용 ✨
+        alert(langStrings.alertEyedropperNotSupported);
       }
     });
 
-    // updateColorDisplay 함수 수정: hexInput.value를 항상 현재 색상으로 채움
     function updateColorDisplay(color) {
       if (color === 'rgba(0,0,0,0)' || color.toLowerCase() === 'transparent') {
           colorDisplayBox.style.backgroundColor = '';
           colorDisplayBox.classList.add('transparent-display-box');
-          currentHexSpan.textContent = langStrings.transparent; // ✨ 번역된 텍스트 사용 ✨
+          currentHexSpan.textContent = langStrings.transparent;
           hexInput.value = 'transparent';
-          hexInput.placeholder = langStrings.transparent; // ✨ 번역된 텍스트 사용 ✨
+          hexInput.placeholder = langStrings.transparent;
       } else {
           colorDisplayBox.classList.remove('transparent-display-box');
           colorDisplayBox.style.backgroundColor = color;
@@ -634,7 +745,6 @@
       }
     }
 
-    // processImage 함수 (비율 계산 로직 포함)
     function processImage() {
       if (!img) return;
 
@@ -692,7 +802,7 @@
 
     function download() {
       if (!img) {
-        alert(langStrings.alertNoImage); // ✨ 번역된 텍스트 사용 ✨
+        alert(langStrings.alertNoImage);
         return;
       }
 
@@ -715,15 +825,12 @@
       link.click();
     }
 
-    // 페이지 로드 시 초기 설정
-    // DOMContentLoaded를 사용하여 HTML 로드 후 번역 적용
     document.addEventListener("DOMContentLoaded", () => {
-        applyTranslations(); // ✨ 페이지 로드 시 번역 적용 ✨
-        updateColorDisplay(currentBgColor); // 초기 색상 표시 업데이트
-        processImage(); // 초기 이미지 처리 (없으면 작동 안함)
+        applyTranslations();
+        updateColorDisplay(currentBgColor);
+        processImage();
     });
 
-    // 다운로드 버튼 이벤트 리스너 추가
     downloadButton.addEventListener("click", download);
 
   </script>
