@@ -314,12 +314,12 @@
   </style>
 </head>
 <body>
-  <h1>📐 Image Padding Tool</h1>
+  <h1 id="mainTitle">📐 Image Padding Tool</h1>
 
   <input type="file" id="imageInput" accept="image/*">
 
   <div class="color-input-group">
-    <label for="colorDisplayBox">배경색:</label> <!-- ✨ 수정: label for 추가 ✨ -->
+    <label for="colorDisplayBox" id="bgColorLabel">배경색:</label>
     <div class="color-picker-wrapper">
       <div id="colorDisplayBox">
         <span id="currentHex">#000000</span>
@@ -349,7 +349,7 @@
         <div class="color-swatch" data-color="#B8E986" style="background-color: #B8E986;"></div>
 
         <div class="color-input-area">
-          <label for="hexInput">직접 입력:</label>
+          <label for="hexInput" id="directInputLabel">직접 입력:</label>
           <input type="text" id="hexInput" maxlength="7" placeholder="#RRGGBB">
         </div>
       </div>
@@ -358,24 +358,22 @@
   </div>
 
   <div class="ratio-controls-flex-group">
-    <label for="aspectRatio">비율 선택:</label> <!-- ✨ 수정: label for 추가 ✨ -->
+    <label for="aspectRatio" id="aspectRatioLabel">비율 선택:</label>
     <select id="aspectRatio">
-      <option value="1">1:1</option>
-      <option value="1.33">4:3</option>
-      <option value="1.5">3:2</option>
-      <option value="1.78" selected>16:9</option>
-      <option value="custom">-- 직접 입력 --</option>
+      <option value="1" id="option1_1">1:1</option>
+      <option value="1.33" id="option4_3">4:3</option>
+      <option value="1.5" id="option3_2">3:2</option>
+      <option value="1.78" selected id="option16_9">16:9</option>
+      <option value="custom" id="customOption">-- 직접 입력 --</option>
     </select>
 
     <div id="customAspectRatioInputGroup" class="aspect-ratio-custom-input-group">
-      <label for="customAspectRatioInput">비율 입력:</label>
-      <!-- ✨ 수정: placeholder 텍스트 및 안내 문구 추가 ✨ -->
+      <label for="customAspectRatioInput" id="customRatioLabel">비율 입력:</label>
       <input type="text" id="customAspectRatioInput" placeholder="예: 16:9">
-      <small style="display: block; margin-top: 0.2rem; font-size: 0.8rem; color: #aaa;">빈 값 시 16:9 비율이 적용됩니다.</small>
+      <small style="display: block; margin-top: 0.2rem; font-size: 0.8rem; color: #aaa;" id="ratioHint">빈 값 시 16:9 비율이 적용됩니다.</small>
     </div>
   </div>
 
-  <!-- 2. 다운로드 버튼 id 부여 및 onclick 제거 -->
   <button id="downloadButton">다운로드</button>
 
   <canvas id="canvas" width="1600" height="900"></canvas>
@@ -395,9 +393,103 @@
     const predefinedColorPalette = document.getElementById("predefinedColorPalette");
     const eyedropperButton = document.getElementById("eyedropperButton");
     const hexInput = document.getElementById("hexInput");
-    const downloadButton = document.getElementById("downloadButton"); // 2. 다운로드 버튼 요소 가져오기
+    const downloadButton = document.getElementById("downloadButton");
 
     let currentBgColor = "#000000";
+
+    // ✨ 국제화 (i18n) 관련 코드 추가 시작 ✨
+    const translations = {
+        ko: {
+            title: "Image Padding Tool",
+            mainTitle: "📐 Image Padding Tool",
+            bgColorLabel: "배경색:",
+            directInputLabel: "직접 입력:",
+            eyedropperButton: "스포이드",
+            aspectRatioLabel: "비율 선택:",
+            option1_1: "1:1",
+            option4_3: "4:3",
+            option3_2: "3:2",
+            option16_9: "16:9",
+            customOption: "-- 직접 입력 --",
+            customRatioPlaceholder: "예: 16:9",
+            ratioHint: "빈 값 시 16:9 비율이 적용됩니다.",
+            downloadButton: "다운로드",
+            alertNoImage: "이미지를 먼저 업로드해주세요.",
+            alertEyedropperNotSupported: "이 브라우저에서는 스포이드 기능을 지원하지 않습니다. (Chrome, Edge 등에서 사용 가능)",
+            eyedropperButtonTitle: "이 브라우저는 스포이드 기능을 지원하지 않습니다.",
+            transparent: "투명"
+        },
+        en: {
+            title: "Image Padding Tool",
+            mainTitle: "📐 Image Padding Tool",
+            bgColorLabel: "Background Color:",
+            directInputLabel: "Direct Input:",
+            eyedropperButton: "Eyedropper",
+            aspectRatioLabel: "Aspect Ratio:",
+            option1_1: "1:1",
+            option4_3: "4:3",
+            option3_2: "3:2",
+            option16_9: "16:9",
+            customOption: "-- Custom --",
+            customRatioPlaceholder: "e.g., 16:9",
+            ratioHint: "If empty, 16:9 ratio will be applied.",
+            downloadButton: "Download",
+            alertNoImage: "Please upload an image first.",
+            alertEyedropperNotSupported: "This browser does not support the Eyedropper tool. (Available in Chrome, Edge, etc.)",
+            eyedropperButtonTitle: "This browser does not support the eyedropper tool.",
+            transparent: "Transparent"
+        }
+    };
+
+    let langStrings; // 현재 선택된 언어의 문자열을 담을 변수
+
+    function getBrowserLanguage() {
+        const userLang = navigator.language || navigator.userLanguage;
+        if (userLang.startsWith('ko')) {
+            return 'ko';
+        }
+        return 'en'; // 기본값은 영어
+    }
+
+    function applyTranslations() {
+        const lang = getBrowserLanguage();
+        langStrings = translations[lang];
+
+        // HTML 요소 텍스트 업데이트
+        document.title = langStrings.title;
+        document.getElementById("mainTitle").textContent = langStrings.mainTitle;
+        document.getElementById("bgColorLabel").textContent = langStrings.bgColorLabel;
+        document.getElementById("directInputLabel").textContent = langStrings.directInputLabel;
+        document.getElementById("eyedropperButton").textContent = langStrings.eyedropperButton;
+        document.getElementById("aspectRatioLabel").textContent = langStrings.aspectRatioLabel;
+        document.getElementById("downloadButton").textContent = langStrings.downloadButton;
+        document.getElementById("customRatioLabel").textContent = langStrings.customRatioLabel;
+        document.getElementById("ratioHint").textContent = langStrings.ratioHint;
+
+        // Placeholder 업데이트
+        // hexInput.placeholder는 transparent로 바뀔 수 있으므로 updateColorDisplay에서 처리
+        customAspectRatioInput.placeholder = langStrings.customRatioPlaceholder;
+
+        // select option 텍스트 업데이트
+        document.getElementById("option1_1").textContent = langStrings.option1_1;
+        document.getElementById("option4_3").textContent = langStrings.option4_3;
+        document.getElementById("option3_2").textContent = langStrings.option3_2;
+        document.getElementById("option16_9").textContent = langStrings.option16_9;
+        document.getElementById("customOption").textContent = langStrings.customOption;
+
+        // EyeDropper 버튼 상태 및 툴팁 업데이트
+        if (!window.EyeDropper) {
+            eyedropperButton.disabled = true;
+            eyedropperButton.title = langStrings.eyedropperButtonTitle;
+        } else {
+            eyedropperButton.disabled = false;
+            eyedropperButton.title = ''; // 지원하면 title 제거
+        }
+
+        // 현재 배경색 표시 업데이트 (언어 변경 후 '투명' 텍스트 재적용)
+        updateColorDisplay(currentBgColor);
+    }
+    // ✨ 국제화 (i18n) 관련 코드 추가 끝 ✨
 
     imageInput.addEventListener("change", e => {
       const reader = new FileReader();
@@ -475,7 +567,6 @@
         } else if (value.toLowerCase() === 'transparent') {
              currentBgColor = 'rgba(0,0,0,0)';
              updateColorDisplay(currentBgColor);
-             processImage();
              hexInput.classList.remove("invalid");
         } else { // 빈 문자열 또는 유효하지 않은 헥스 코드
             hexInput.classList.add("invalid");
@@ -494,7 +585,7 @@
           console.error("EyeDropper API 에러:", e);
         }
       } else {
-        alert("이 브라우저에서는 스포이드 기능을 지원하지 않습니다. (Chrome, Edge 등에서 사용 가능)");
+        alert(langStrings.alertEyedropperNotSupported); // ✨ 번역된 텍스트 사용 ✨
       }
     });
 
@@ -503,9 +594,9 @@
       if (color === 'rgba(0,0,0,0)' || color.toLowerCase() === 'transparent') {
           colorDisplayBox.style.backgroundColor = '';
           colorDisplayBox.classList.add('transparent-display-box');
-          currentHexSpan.textContent = "투명";
+          currentHexSpan.textContent = langStrings.transparent; // ✨ 번역된 텍스트 사용 ✨
           hexInput.value = 'transparent';
-          hexInput.placeholder = '투명';
+          hexInput.placeholder = langStrings.transparent; // ✨ 번역된 텍스트 사용 ✨
       } else {
           colorDisplayBox.classList.remove('transparent-display-box');
           colorDisplayBox.style.backgroundColor = color;
@@ -585,7 +676,7 @@
 
     function download() {
       if (!img) {
-        alert("이미지를 먼저 업로드해주세요.");
+        alert(langStrings.alertNoImage); // ✨ 번역된 텍스트 사용 ✨
         return;
       }
 
@@ -609,17 +700,16 @@
     }
 
     // 페이지 로드 시 초기 설정
-    updateColorDisplay(currentBgColor);
-    processImage();
+    // DOMContentLoaded를 사용하여 HTML 로드 후 번역 적용
+    document.addEventListener("DOMContentLoaded", () => {
+        applyTranslations(); // ✨ 페이지 로드 시 번역 적용 ✨
+        updateColorDisplay(currentBgColor); // 초기 색상 표시 업데이트
+        processImage(); // 초기 이미지 처리 (없으면 작동 안함)
+    });
 
-    // 2. 다운로드 버튼 이벤트 리스너 추가
+    // 다운로드 버튼 이벤트 리스너 추가
     downloadButton.addEventListener("click", download);
 
-    // EyeDropper API 지원 여부에 따라 버튼 상태 변경
-    if (!window.EyeDropper) {
-        eyedropperButton.disabled = true;
-        eyedropperButton.title = "이 브라우저는 스포이드 기능을 지원하지 않습니다.";
-    }
   </script>
 </body>
 </html>
